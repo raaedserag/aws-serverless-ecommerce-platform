@@ -161,6 +161,7 @@ activate: validate-pyenv
 requirements:
 	@echo "[*] Install Python requirements"
 	@pip install -r requirements.txt
+	@pip3 install -r requirements.txt
 
 # Install npm dependencies
 npm-install:
