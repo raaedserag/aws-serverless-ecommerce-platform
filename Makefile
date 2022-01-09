@@ -152,37 +152,6 @@ setup: validate
 	@$(MAKE) requirements
 	@$(MAKE) npm-install
 
-# setup for Cloud9 environments
-setup-cloud9:
-	@echo "[*] Install required libraries"
-	sudo yum install -y @development zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel findutils jq
-	@echo "[*] Resize Cloud 9 volume"
-	aws ec2 modify-volume --volume-id $$(aws ec2 describe-instances --instance-id $$(curl http://169.254.169.254/latest/meta-data/instance-id) | jq -r .Reservations[0].Instances[0].BlockDeviceMappings[0].Ebs.VolumeId) --size 20
-	while [ "$$(aws ec2 describe-volumes-modifications --volume-id $$(aws ec2 describe-instances --instance-id $$(curl http://169.254.169.254/latest/meta-data/instance-id) | jq -r .Reservations[0].Instances[0].BlockDeviceMappings[0].Ebs.VolumeId) --filters Name=modification-state,Values="optimizing","completed" | jq '.VolumesModifications | length')" != "1" ]; do sleep 1; done
-	if [ $$(readlink -f /dev/xvda) = "/dev/xvda" ]; then sudo growpart /dev/xvda 1; else sudo growpart /dev/nvme0n1 1; fi
-	sudo xfs_growfs -d /
-	@echo "[*] Install pyenv"
-	curl https://pyenv.run | bash
-	echo -e 'export PYENV_ROOT="$$HOME/.pyenv"\nexport PATH="$$PYENV_ROOT/bin:$$PATH"\neval "$$(pyenv init --path)"' >> ~/.profile
-	echo -e 'eval "$$(pyenv init -)"\neval "$$(pyenv virtualenv-init -)"' >> ~/.bashrc
-	@echo "[*] Install node 12"
-	sudo yum remove -y nodejs npm
-	curl -sL https://rpm.nodesource.com/setup_12.x | sudo bash -
-	sudo yum install -y nodejs
-	@echo "****************************"
-	@echo "* BEFORE CONTINUING PLEASE *"
-	@echo "* RUN THESE COMMANDS:      *"
-	@echo
-	@echo "  source ~/.profile         "
-	@echo "  exec /bin/bash            "
-	@echo
-	@echo "* THEN CONTINUE WITH THE   *"
-	@echo "* FOLLOWING COMMAND:       *"
-	@echo
-	@echo "  make setup                "
-	@echo
-	@echo "****************************"
-
 # Activate the virtual environment
 activate: validate-pyenv
 	@echo "[*] Activate virtualenv $(NAME)"
